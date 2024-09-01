@@ -86,6 +86,20 @@ class MessageDecoded:
                     yield submessage['content']
         return generator()
     
+    def plain(self):
+        def generator():
+            for submessage in self:
+                if submessage['content_subtype'] == 'plain':
+                    yield submessage['content']
+        return generator()
+
+    def html(self):
+        def generator():
+            for submessage in self:
+                if submessage['content_subtype'] == 'html':
+                    yield submessage['content']
+        return generator()
+    
     def binary(self):
         def generator():
             for submessage in self:
