@@ -74,9 +74,10 @@ class MessageDecoded:
     
     def __iter__(self):
         if self['is_multipart']:
-            yield from self['children']
-            return
-        yield self
+            for child in self['children']:
+                yield from child
+        else:
+            yield self
 
     def texts(self):
         def generator():
