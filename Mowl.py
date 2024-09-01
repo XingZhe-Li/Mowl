@@ -78,6 +78,20 @@ class MessageDecoded:
             return
         yield self
 
+    def texts(self):
+        def generator():
+            for submessage in self:
+                if submessage['content_maintype'] == 'text':
+                    yield submessage['content']
+        return generator()
+    
+    def binary(self):
+        def generator():
+            for submessage in self:
+                if submessage['content_maintype'] != 'text':
+                    yield submessage['content']
+        return generator()
+
 class MailReceiver:
     def __init__(self,host:str,port:int,SSL=True):
         self._host = host
@@ -120,12 +134,26 @@ class MailReceiver:
         binaryMessage = b'\r\n'.join(binarySlices)
         return MessageDecoded(bytesParser.parsebytes(binaryMessage))
 
-    def __delitem__(self,index,boundary_check=True):
+    def dele(self,index,boundary_check=True):
         if boundary_check:
             length = len(self)
             if not(0 <= index < length):
                 raise IndexError('Index Out of Range [0,{0})'.format(length))
         self.client.dele(index+1)
+
+    def __delitem__(self,index):
+        if type(index) == int:
+            self.dele(index)
+        
+        elif type(index) == slice:
+            length = len(self)
+            start = index.start or 0
+            stop  = index.stop or length
+            step  = index.step or 1
+            if not (0 <= start <= stop <= length):
+                raise IndexError('Index Out of Range [0,{0})'.format(length))
+            for i in range(start,stop,step):
+                self.dele(i,boundary_check=False)
 
     def __iter__(self):
         return self[:]
